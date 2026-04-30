@@ -34,21 +34,17 @@ pip install -e /Users/thomasviles/bwi-stack/bwi-core
 
 The `-e` flag means "editable" — changes you make in `bwi-core` are picked up immediately without reinstalling.
 
-### From the private GitHub repo (what Lambdas will use)
+### From the public GitHub repo (what Lambdas will use)
 
 Add to the consuming repo's `requirements.txt`:
 
 ```
-bwi-core @ git+ssh://git@github.com/<owner>/bwi-core.git@v0.1.0
+bwi-core @ git+https://github.com/blackwidowimaging/bwi-core.git@v0.2.0
 ```
 
-Replace `<owner>` with the GitHub user/org that owns the repo, and `v0.1.0` with the tag you want.
+Replace `v0.2.0` with whichever tag you want to pin to.
 
-For HTTPS-based access (in CI/CodeBuild) using a GitHub token:
-
-```
-bwi-core @ git+https://${GITHUB_TOKEN}@github.com/<owner>/bwi-core.git@v0.1.0
-```
+No credentials needed — the repo is public.
 
 ## Releasing a new version
 
@@ -82,5 +78,20 @@ If you ever need an actual `.whl` file (you usually won't — pip-from-git is fi
 ```bash
 pip install build
 python -m build
-# Output: dist/bwi_core-0.1.0-py3-none-any.whl
+# Output: dist/bwi_core-<version>-py3-none-any.whl
 ```
+
+## Required environment variables
+
+Some helpers read environment variables. The consuming Lambda's SAM template must set these (typically with different values per stage).
+
+| Variable | Used by | Required? | Notes |
+| --- | --- | --- | --- |
+| `COGNITO_USER_POOL_ID` | `CognitoConnection` | yes (when used) | Per-environment user pool ID |
+| `MQTT_BROKER` | `publish_payload_to_system` | yes (when used) | MQTT broker host/IP |
+| `MQTT_USER` | `publish_payload_to_system` | yes (when used) | MQTT username |
+| `MQTT_PASS` | `publish_payload_to_system` | yes (when used) | MQTT password |
+| `MQTT_TOPIC` | `publish_payload_to_system` | yes (when used) | MQTT topic |
+| `MQTT_PORT` | `publish_payload_to_system` | optional | Defaults to `1883` |
+
+Missing required env vars cause a `RuntimeError` at call time — by design, so misconfiguration fails loudly instead of silently using wrong defaults.

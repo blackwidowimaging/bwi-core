@@ -5,12 +5,22 @@ from typing import Any, Dict, Optional
 import boto3
 
 
+def _required_env(name: str) -> str:
+    value = os.environ.get(name)
+    if not value:
+        raise RuntimeError(
+            f"Required environment variable {name} is not set. "
+            f"Set it in the consuming Lambda's SAM template or runtime config."
+        )
+    return value
+
+
 def _mqtt_command(payload: Dict[str, Any]) -> str:
-    broker = os.getenv("MQTT_BROKER", "10.2.1.1")
-    port = int(os.getenv("MQTT_PORT", "1883"))
-    user = os.getenv("MQTT_USER", "bwuser")
-    password = os.getenv("MQTT_PASS", "bw2023")
-    topic = os.getenv("MQTT_TOPIC", "event")
+    broker = _required_env("MQTT_BROKER")
+    port = int(os.environ.get("MQTT_PORT", "1883"))
+    user = _required_env("MQTT_USER")
+    password = _required_env("MQTT_PASS")
+    topic = _required_env("MQTT_TOPIC")
 
     mqtt_message = json.dumps(payload).replace('"', '\\"')
     return (
