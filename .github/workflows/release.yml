@@ -1,0 +1,48 @@
+name: Publish wheel on tag
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install build tooling
+        run: pip install --upgrade build
+
+      - name: Build wheel and sdist
+        run: python -m build
+
+      - name: Verify wheel version matches tag
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          WHEEL_FILE=$(ls dist/bwi_core-*.whl)
+          WHEEL_VERSION=$(echo "$WHEEL_FILE" | sed -E 's|.*bwi_core-([^-]+)-.*|\1|')
+          echo "Tag version:   $TAG_VERSION"
+          echo "Wheel version: $WHEEL_VERSION"
+          if [ "$TAG_VERSION" != "$WHEEL_VERSION" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match wheel version $WHEEL_VERSION. Bump pyproject.toml + __init__.py before tagging."
+            exit 1
+          fi
+
+      - name: Create release and upload artifacts
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.whl
+            dist/*.tar.gz
+          fail_on_unmatched_files: true
+          generate_release_notes: true

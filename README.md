@@ -34,28 +34,31 @@ pip install -e /Users/thomasviles/bwi-stack/bwi-core
 
 The `-e` flag means "editable" — changes you make in `bwi-core` are picked up immediately without reinstalling.
 
-### From the public GitHub repo (what Lambdas will use)
+### From the published wheel on GitHub Releases (what Lambdas use)
 
 Add to the consuming repo's `requirements.txt`:
 
 ```
-bwi-core @ git+https://github.com/blackwidowimaging/bwi-core.git@v0.2.0
+bwi-core @ https://github.com/blackwidowimaging/bwi-core/releases/download/v0.2.1/bwi_core-0.2.1-py3-none-any.whl
 ```
 
-Replace `v0.2.0` with whichever tag you want to pin to.
+Bump the version twice in the URL when upgrading: once in the tag (`v0.2.1`) and once in the wheel filename (`bwi_core-0.2.1-...`).
 
 No credentials needed — the repo is public.
 
+**Why a wheel URL and not `git+https://...@v0.2.1`?** AWS SAM's `sam build` uses `aws-lambda-builders`, which reads package metadata directly from the source tree. A fresh git clone of a `pyproject.toml`-only package has no `PKG-INFO` file (it's generated during build), so the git-URL form fails with "Unable to find PKG-INFO". A wheel has `METADATA` baked in and works fine.
+
 ## Releasing a new version
 
-1. Edit `pyproject.toml`, bump the `version` field (e.g. `0.1.0` → `0.1.1` for a fix, `0.2.0` for new features).
+1. Bump the version in **both** `pyproject.toml` (the `version` field) and `src/bwi_core/__init__.py` (the `__version__` line). They must match.
 2. Commit the change.
 3. Tag and push:
    ```bash
-   git tag v0.1.1
+   git tag v0.2.2
    git push origin main --tags
    ```
-4. Update consuming repos' `requirements.txt` to point at the new tag.
+4. The `Publish wheel on tag` GitHub Action runs automatically: builds the wheel, creates a GitHub Release for the tag, and attaches `bwi_core-<version>-py3-none-any.whl` and the sdist. Confirm at https://github.com/blackwidowimaging/bwi-core/releases.
+5. Update consuming repos' `requirements.txt` to point at the new wheel URL.
 
 Use semantic versioning loosely:
 - Patch (`0.1.0` → `0.1.1`) — bug fix, no API change.
