@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bwi-core"
+version = "0.1.0"
+description = "Shared Python utilities for BWI Lambda services (DynamoDB, Cognito, MQTT/SSM, logging, API helpers)."
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [
+    { name = "Thomas Viles", email = "thomas@3iautoshot.com" },
+]
+license = { text = "Proprietary" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+    "Private :: Do Not Upload",
+]
+dependencies = [
+    "boto3>=1.28",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7",
+    "build",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
