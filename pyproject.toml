@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "bwi-core"
-version = "0.2.1"
+version = "0.2.2"
 description = "Shared Python utilities for BWI Lambda services (DynamoDB, Cognito, MQTT/SSM, logging, API helpers)."
 readme = "README.md"
 requires-python = ">=3.9"

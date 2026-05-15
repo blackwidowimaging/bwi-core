@@ -14,6 +14,7 @@ def test_imports():
     from bwi_core.models.api_response import APIResponse
     from bwi_core.models.request_event import RequestEvent
     from bwi_core.utils.logger import setup_logger
+    from bwi_core.utils.camera_tags import rank_for_camera_tag
 
     assert DynamoConnection
     assert CognitoConnection
@@ -23,6 +24,31 @@ def test_imports():
     assert APIResponse
     assert RequestEvent
     assert setup_logger
+    assert rank_for_camera_tag
+
+
+def test_camera_tag_rank_order():
+    from bwi_core.utils.camera_tags import rank_for_camera_tag, UNASSIGNED_RANK, ROOF_RANK
+
+    # Within a base, High ranks earliest, then base, then Low.
+    assert rank_for_camera_tag("Left Front High") < rank_for_camera_tag("Left Front")
+    assert rank_for_camera_tag("Left Front") < rank_for_camera_tag("Left Front Low")
+
+    # CCW around the vehicle: Left Front -> Left Side -> ... -> Front.
+    assert rank_for_camera_tag("Left Front") < rank_for_camera_tag("Left Side")
+    assert rank_for_camera_tag("Left Side") < rank_for_camera_tag("Right Side")
+    assert rank_for_camera_tag("Right Front") < rank_for_camera_tag("Front")
+
+    # Roof and Unassigned land at the tail.
+    assert rank_for_camera_tag("Front") < rank_for_camera_tag("Roof")
+    assert rank_for_camera_tag("Roof") < rank_for_camera_tag("Unassigned")
+    assert rank_for_camera_tag(None) == UNASSIGNED_RANK
+    assert rank_for_camera_tag("") == UNASSIGNED_RANK
+    assert rank_for_camera_tag("Roof") == ROOF_RANK
+
+    # Abbreviations resolve.
+    assert rank_for_camera_tag("LF") == rank_for_camera_tag("Left Front")
+    assert rank_for_camera_tag("LF-a") == rank_for_camera_tag("Left Front")
 
 
 def test_api_response_shapes():
